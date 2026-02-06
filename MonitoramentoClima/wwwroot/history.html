@@ -1,0 +1,156 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Histórico | UFMG - PICJr</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html"><img src="images/logo.png" alt="Logo" height="40" /></a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="header-actions">
+            <div>
+                <a href="index.html" class="btn-back"><i class="fas fa-arrow-left"></i> Voltar ao Dashboard</a>
+                <h1 id="station-title">Carregando dados...</h1>
+            </div>
+
+            <select id="time-filter" style="padding: 8px; border-radius: 4px; border: 1px solid #ddd;">
+                <option value="24h">Últimas 24 horas</option>
+                <option value="7d" selected>Últimos 7 dias</option>
+            </select>
+        </div>
+
+        <section class="chart-container">
+            <canvas id="historyChart"></canvas>
+        </section>
+
+        <section class="data-table-wrapper">
+            <table>
+                <thead>
+                    <tr><th>Data/Hora</th><th>Temperatura (°C)</th><th>Umidade (%)</th></tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container"><p>&copy; 2026 UFMG - PICJr.</p></div>
+    </footer>
+
+    <script>
+        // Pegamos o ID da URL (ex: ?id=ufmg-agrarias)
+        const params = new URLSearchParams(window.location.search);
+        const stationId = params.get("id");
+
+        // Se não tiver ID, avisa e para
+        if (!stationId) {
+            document.getElementById("station-title").innerText = "Erro: Nenhuma estação selecionada.";
+            throw new Error("ID não fornecido");
+        }
+
+        // Função Principal
+        async function carregarHistorico() {
+            try {
+                document.getElementById("station-title").innerText = `Carregando: ${stationId}...`;
+
+                // 1. CHAMA A API ESPECÍFICA DA ESTAÇÃO
+                const response = await fetch(`/api/stations/${stationId}`);
+
+                if (!response.ok) {
+                    document.getElementById("station-title").innerText = "Estação não encontrada.";
+                    return;
+                }
+
+                const station = await response.json();
+
+                // Atualiza Título
+                document.getElementById("station-title").innerText = `Histórico: ${station.name}`;
+
+                // 2. PREPARA OS DADOS (Ordena por data)
+                // Se não tiver leituras, cria array vazio
+                const readings = station.readings || [];
+
+                // Ordenar: Mais antigo primeiro para o gráfico desenhar da esquerda p/ direita
+                readings.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+                // Para a tabela, queremos o inverso (mais recente no topo)
+                const readingsForTable = [...readings].reverse();
+
+                // 3. CONFIGURA O GRÁFICO
+                const ctx = document.getElementById("historyChart").getContext("2d");
+
+                new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        // Eixo X: Horários formatados
+                        labels: readings.map(r => new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })),
+                        datasets: [
+                            {
+                                label: "Temperatura (°C)",
+                                data: readings.map(r => r.temperature),
+                                borderColor: "#B52020",
+                                backgroundColor: "rgba(181, 32, 32, 0.1)",
+                                fill: true,
+                                tension: 0.3,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: "Umidade (%)",
+                                data: readings.map(r => r.humidity),
+                                borderColor: "#3182ce",
+                                backgroundColor: "transparent",
+                                borderDash: [5, 5],
+                                tension: 0.3,
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: "index", intersect: false },
+                        scales: {
+                            y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Temperatura (°C)' } },
+                            y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Umidade (%)' }, grid: { drawOnChartArea: false } },
+                        }
+                    }
+                });
+
+                // 4. PREENCHE A TABELA
+                const tableBody = document.getElementById("table-body");
+                tableBody.innerHTML = ""; // Limpa antes
+
+                readingsForTable.forEach(r => {
+                    const dataFormatada = new Date(r.timestamp).toLocaleString();
+                    const tr = `
+                        <tr>
+                            <td>${dataFormatada}</td>
+                            <td><strong>${r.temperature}°C</strong></td>
+                            <td>${r.humidity}%</td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += tr;
+                });
+
+            } catch (error) {
+                console.error(error);
+                alert("Erro ao carregar histórico.");
+            }
+        }
+
+        // Inicia
+        carregarHistorico();
+    </script>
+</body>
+</html>

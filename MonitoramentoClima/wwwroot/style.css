@@ -1,0 +1,176 @@
+﻿/* wwwroot/style.css */
+:root {
+    --bg-color: #f4f6f8;
+    --card-bg: #ffffff;
+    --primary: #b52020; /* Vermelho UFMG */
+    --text-color: #333;
+}
+
+body {
+    font-family: "Inter", sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* --- Layout Base --- */
+.navbar {
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 1rem 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 2rem 0;
+}
+
+.btn-back {
+    text-decoration: none;
+    color: #555;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+footer {
+    background: #333;
+    color: #fff;
+    text-align: center;
+    padding: 1rem;
+    margin-top: auto;
+}
+
+/* --- Estilos do Dashboard (index.html) --- */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.station-card {
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-top: 4px solid var(--primary);
+    transition: transform 0.2s;
+}
+
+    .station-card:hover {
+        transform: translateY(-2px);
+    }
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.status-badge {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: bold;
+}
+
+.status-online {
+    background: #e6fffa;
+    color: #047857;
+}
+
+.status-offline {
+    background: #fff5f5;
+    color: #c53030;
+}
+
+.sensor-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.sensor-item {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.sensor-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: block;
+}
+
+.sensor-label {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.card-footer {
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    color: #888;
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+}
+
+    .card-footer a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+/* --- Estilos do Histórico (history.html) --- */
+.chart-container {
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    position: relative;
+    height: 400px;
+    width: 100%;
+}
+
+.data-table-wrapper {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #444;
+}

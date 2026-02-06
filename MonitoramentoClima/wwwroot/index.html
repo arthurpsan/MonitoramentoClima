@@ -1,0 +1,104 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard | UFMG - PICJr</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html">
+                <img src="images/logo.png" alt="Logo PICJr UFMG" height="40" />
+            </a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="header-actions">
+            <h1>Monitoramento Climático</h1>
+            <span><i class="fas fa-satellite-dish"></i> Status do Sistema: <strong>Online</strong></span>
+        </div>
+
+        <section id="dashboard-container" class="dashboard-grid">
+            <p>Conectando ao servidor...</p>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 UFMG - PICJr.</p>
+        </div>
+    </footer>
+
+    <script>
+      async function carregarDados() {
+        const container = document.getElementById("dashboard-container");
+
+        try {
+            const response = await fetch('/api/stations');
+
+            if (!response.ok) throw new Error('Falha na API');
+
+            const stations = await response.json();
+            container.innerHTML = ""; // Limpa loading
+
+            stations.forEach((station) => {
+                // Lógica: Pega a última leitura ou zeros se não tiver
+                const ultimaLeitura = station.readings && station.readings.length > 0
+                    ? station.readings[station.readings.length - 1]
+                    : { temperature: 0, humidity: 0 };
+
+                // Verifica se está online (visto nos últimos 20 min)
+                const lastSeenDate = station.lastSeen ? new Date(station.lastSeen) : new Date(0);
+                const diffMinutes = (new Date() - lastSeenDate) / 1000 / 60;
+                const isOnline = diffMinutes < 20;
+
+                const statusClass = isOnline ? "status-online" : "status-offline";
+                const statusText = isOnline ? "Online" : "Offline";
+
+                const cardHTML = `
+                    <article class="station-card">
+                        <div class="card-header">
+                            <h3>${station.name}</h3>
+                            <span class="status-badge ${statusClass}">
+                                <i class="fas fa-circle" style="font-size: 8px;"></i> ${statusText}
+                            </span>
+                        </div>
+
+                        <div class="sensor-grid">
+                            <div class="sensor-item">
+                                <i class="fas fa-temperature-high" style="color: #e53e3e;"></i>
+                                <span class="sensor-value">${ultimaLeitura.temperature}°C</span>
+                                <span class="sensor-label">Temperatura</span>
+                            </div>
+                            <div class="sensor-item">
+                                <i class="fas fa-tint" style="color: #3182ce;"></i>
+                                <span class="sensor-value">${ultimaLeitura.humidity}%</span>
+                                <span class="sensor-label">Umidade</span>
+                            </div>
+                        </div>
+
+                        <div class="card-footer" style="justify-content: flex-end;">
+                            <a href="history.html?id=${station.id}">Ver Histórico &rarr;</a>
+                        </div>
+                    </article>
+                `;
+                container.innerHTML += cardHTML;
+            });
+
+        } catch (error) {
+            console.error(error);
+            container.innerHTML = "<p style='color:red'>Erro ao carregar dados. Verifique se a API está rodando.</p>";
+        }
+      }
+
+      carregarDados();
+      setInterval(carregarDados, 30000); // Atualiza a cada 30s
+    </script>
+</body>
+</html>
