@@ -42,6 +42,7 @@ namespace MonitoramentoClima.Controllers
             return station;
         }
 
+        [HttpPost("reading")]
         public async Task<ActionResult<Reading>> PostReading([FromBody] CreateReadingDto dto)
         {
             // 1. Verifica se a estação existe
@@ -80,6 +81,18 @@ namespace MonitoramentoClima.Controllers
 
             // Retorna sucesso (201 Created)
             return CreatedAtAction(nameof(GetStation), new { id = reading.StationId }, reading);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<Station>> PostStation(Station station)
+        {
+            // Garante que a estação nova tenha um horário de "visto por último"
+            if (station.LastSeen == null) station.LastSeen = DateTime.Now;
+
+            _context.Stations.Add(station);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetStation), new { id = station.Id }, station);
         }
 
     }
